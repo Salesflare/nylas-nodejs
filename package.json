@@ -1,5 +1,5 @@
 {
-  "name": "nylas",
+  "name": "@salesflare/nylas",
   "version": "4.3.0",
   "description": "A NodeJS wrapper for the Nylas REST API for email, contacts, and calendar.",
   "main": "lib/nylas.js",
