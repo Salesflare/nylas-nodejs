@@ -577,6 +577,7 @@ describe('RestfulModelCollection', () => {
             id: '123',
             account_id: undefined,
             subject: 'A',
+            files: i % 2 ? [] : [{}, {}, {}],
           });
         }
         threadsResponses.push(response);
@@ -589,7 +590,7 @@ describe('RestfulModelCollection', () => {
     });
 
     test('should fetch once if fewer than one page of models are requested', () => {
-      const params = { from: 'ben@nylas.com' };
+      const params = { from: 'ben1@nylas.com' };
       const threads = [
         {
           id: '123',
@@ -606,8 +607,8 @@ describe('RestfulModelCollection', () => {
       );
     });
 
-    test('should fetch repeatedly until the requested number of models have been returned', () => {
-      const params = { from: 'ben@nylas.com' };
+    test('should fetch repeatedly until the requested number of models have been returned', done => {
+      const params = { from: 'ben2@nylas.com' };
       const threads = [
         {
           id: '123',
@@ -618,13 +619,15 @@ describe('RestfulModelCollection', () => {
       const callback = () => {
         expect(
           testContext.collection._getModelCollection.mock.calls[0]
-        ).toEqual([{ from: 'ben@nylas.com' }, 0, 100, '/threads']);
+        ).toEqual([{ from: 'ben2@nylas.com' }, 0, 100, '/threads']);
         expect(
           testContext.collection._getModelCollection.mock.calls[1]
-        ).toEqual([{ from: 'ben@nylas.com' }, 100, 100, '/threads']);
+        ).toEqual([{ from: 'ben2@nylas.com' }, 100, 100, '/threads']);
         expect(
           testContext.collection._getModelCollection.mock.calls[2]
-        ).toEqual([{ from: 'ben@nylas.com' }, 200, 100, '/threads']);
+        ).toEqual([{ from: 'ben2@nylas.com' }, 200, 100, '/threads']);
+
+        done();
       };
       testContext.collection._range({
         params,
@@ -634,21 +637,23 @@ describe('RestfulModelCollection', () => {
       });
     });
 
-    test('should stop fetching if fewer than requested models are returned', () => {
-      const params = { from: 'ben@nylas.com' };
+    test('should stop fetching if fewer than requested models are returned', done => {
+      const params = { from: 'ben3@nylas.com' };
       const callback = () => {
         expect(
           testContext.collection._getModelCollection.mock.calls[0]
-        ).toEqual([{ from: 'ben@nylas.com' }, 0, 100, '/threads']);
+        ).toEqual([{ from: 'ben3@nylas.com' }, 0, 100, '/threads']);
         expect(
           testContext.collection._getModelCollection.mock.calls[1]
-        ).toEqual([{ from: 'ben@nylas.com' }, 100, 100, '/threads']);
+        ).toEqual([{ from: 'ben3@nylas.com' }, 100, 100, '/threads']);
         expect(
           testContext.collection._getModelCollection.mock.calls[2]
-        ).toEqual([{ from: 'ben@nylas.com' }, 200, 100, '/threads']);
+        ).toEqual([{ from: 'ben3@nylas.com' }, 200, 100, '/threads']);
         expect(
           testContext.collection._getModelCollection.mock.calls[3]
-        ).toEqual([{ from: 'ben@nylas.com' }, 300, 100, '/threads']);
+        ).toEqual([{ from: 'ben3@nylas.com' }, 300, 100, '/threads']);
+
+        done();
       };
       testContext.collection._range({
         params,
@@ -658,8 +663,42 @@ describe('RestfulModelCollection', () => {
       });
     });
 
+    test('should fetch repeatedly until the requested number of files have been returned with has_attachment param', done => {
+      const params = {
+        from: 'ben+has+attachment@nylas.com',
+        has_attachment: true,
+      };
+
+      const callback = () => {
+        expect(
+          testContext.collection._getModelCollection.mock.calls[0]
+        ).toEqual([
+          { from: 'ben+has+attachment@nylas.com', has_attachment: true },
+          0,
+          100,
+          '/threads',
+        ]);
+        expect(
+          testContext.collection._getModelCollection.mock.calls[1]
+        ).toEqual([
+          { from: 'ben+has+attachment@nylas.com', has_attachment: true },
+          150,
+          50,
+          '/threads',
+        ]);
+
+        done();
+      };
+      testContext.collection._range({
+        params,
+        callback,
+        offset: 0,
+        limit: 200,
+      });
+    });
+
     test('should call the callback with all of the loaded models', done => {
-      const params = { from: 'ben@nylas.com' };
+      const params = { from: 'ben4@nylas.com' };
       testContext.collection._range({
         params,
         offset: 0,
@@ -672,7 +711,7 @@ describe('RestfulModelCollection', () => {
     });
 
     test('should resolve with the loaded models', done => {
-      const params = { from: 'ben@nylas.com' };
+      const params = { from: 'ben5@nylas.com' };
       testContext.collection
         ._range({ params, offset: 0, limit: 10000 })
         .then(function(models) {

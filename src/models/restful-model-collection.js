@@ -230,22 +230,45 @@ export default class RestfulModelCollection {
   }) {
     return new Promise((resolve, reject) => {
       let accumulated = [];
+      let accumulatedFiles = [];
       let finished = false;
 
       return async.until(
         () => finished,
         chunkCallback => {
-          const chunkOffset = offset + accumulated.length;
+          const chunkOffset =
+            offset +
+            (params.has_attachment
+              ? accumulatedFiles.length
+              : accumulated.length);
           const chunkLimit = Math.min(
             REQUEST_CHUNK_SIZE,
-            limit - accumulated.length
+            limit -
+              (params.has_attachment
+                ? accumulatedFiles.length
+                : accumulated.length)
           );
+
           return this._getItems(params, chunkOffset, chunkLimit, path)
             .then(items => {
               accumulated = accumulated.concat(items);
-              finished =
-                items.length < REQUEST_CHUNK_SIZE ||
-                accumulated.length >= limit;
+
+              // When `has_attachment === true` the /messages call uses the limit param based on the amount of files
+              // So we do the same thing here
+              if (params.has_attachment) {
+                items = items || [];
+                var files = _.flatten(items.map(item => item.files));
+                accumulatedFiles = accumulatedFiles.concat(files);
+
+                finished =
+                  files.length < REQUEST_CHUNK_SIZE ||
+                  accumulatedFiles.length >= limit;
+              } else {
+                finished =
+                  items.length < REQUEST_CHUNK_SIZE ||
+                  accumulated.length >= limit;
+              }
+
               return chunkCallback();
             })
             .catch(err => reject(err));
