@@ -1,6 +1,6 @@
 {
   "name": "@salesflare/nylas",
-  "version": "4.4.1",
+  "version": "4.4.2",
   "description": "A NodeJS wrapper for the Nylas REST API for email, contacts, and calendar.",
   "main": "lib/nylas.js",
   "scripts": {
