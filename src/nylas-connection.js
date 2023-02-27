@@ -64,6 +64,11 @@ module.exports = class NylasConnection {
     if (!options.downloadRequest) {
       options.downloadRequest = false;
     }
+    // We noticed some calls sporadically taking 15min+ to resolve
+    // Setting default timeout to 60s to be able to abort & retry them quicker
+    if (!Object.hasOwn(options, 'timeout')) {
+      options.timeout = 60000;
+    }
 
     // For convenience, If `expanded` param is provided, convert to view:
     // 'expanded' api option
